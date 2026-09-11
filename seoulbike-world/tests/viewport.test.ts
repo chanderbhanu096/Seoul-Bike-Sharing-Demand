@@ -24,7 +24,7 @@ test('mobile update rows and viewport changes retain a zoomed and rotated camera
     620,
   );
 
-  // The updating message appears and disappears repeatedly, then the device rotates.
+  // Genuine viewport changes must preserve the user-controlled camera pose.
   const sizes = [
     [390, 590],
     [390, 620],
@@ -33,7 +33,8 @@ test('mobile update rows and viewport changes retain a zoomed and rotated camera
     [844, 200],
   ];
   for (const [w, h] of sizes) {
-    resize(w, h);
+    resize.queue(w, h);
+    resize.flush();
     assert.deepEqual(camera.position, position);
     assert.ok(camera.quaternion.equals(orientation));
     assert.equal(camera.zoom, 1.3);
@@ -76,10 +77,43 @@ test('duplicate and transient invalid sizes do not disturb the drawing surface',
     [NaN, 620],
     [390, Infinity],
   ])
-    resize(w, h);
+    resize.queue(w, h);
+  resize.flush();
   assert.deepEqual(calls, []);
   assert.deepEqual(camera.projectionMatrix, projection);
-  resize(320, 344);
-  resize(320, 344);
+  resize.queue(320, 344);
+  resize.flush();
+  resize.queue(320, 344);
+  resize.flush();
   assert.deepEqual(calls, [[320, 344]]);
+});
+
+test('resize observations leave the displayed frame intact until the render boundary', () => {
+  const camera = new PerspectiveCamera(39, 390 / 620, 0.2, 1800);
+  const calls: number[][] = [];
+  const resize = createViewportResizer(
+    camera,
+    {
+      setSize: (w, h) => {
+        calls.push([w, h]);
+      },
+    },
+    390,
+    620,
+  );
+  const projection = camera.projectionMatrix.clone();
+  resize.queue(390, 590);
+  resize.queue(320, 344);
+  assert.deepEqual(calls, []);
+  assert.deepEqual(camera.projectionMatrix, projection);
+  resize.flush();
+  assert.deepEqual(calls, [[320, 344]]);
+  resize.flush();
+  assert.equal(calls.length, 1);
+
+  // Several layout notifications can settle back to the current size in one frame.
+  resize.queue(320, 320);
+  resize.queue(320, 344);
+  resize.flush();
+  assert.equal(calls.length, 1);
 });

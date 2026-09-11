@@ -1050,15 +1050,23 @@ export default function Home() {
             <span>rentals / hour</span>
           </span>
           <span className="mobile-summary-action">
-            Details <ChevronRight size={16} />
+            {phase === 'editing' || phase === 'calculating' ? (
+              <>
+                Updating <LoaderCircle size={16} className="animate-spin" />
+              </>
+            ) : (
+              <>
+                Details <ChevronRight size={16} />
+              </>
+            )}
           </span>
-          {phase !== 'applied' && (
-            <span className="mobile-model-status">
-              {phase === 'error'
-                ? 'Update failed · showing previous estimate'
-                : 'Updating · showing previous estimate'}
-            </span>
-          )}
+          <span className="sr-only" role="status">
+            {phase === 'error'
+              ? 'Update failed · showing previous estimate'
+              : phase !== 'applied'
+                ? 'Updating · showing previous estimate'
+                : 'Estimate updated'}
+          </span>
         </button>
         <aside className="scenario-summary" aria-label="Current conditions">
           <div className="scenario-card glass">

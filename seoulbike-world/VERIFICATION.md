@@ -89,6 +89,13 @@ Performed in the Codex In-app Browser on an Apple M2 Mac (Mac14,7), macOS 27.0.
 - Camera resizing now updates only the renderer dimensions and perspective projection. Initial framing and explicit viewpoint/reset actions retain their existing behavior.
 - Regression coverage uses a real Three.js perspective camera with a custom zoom and orientation. Repeated mobile status-row height changes and device-size changes preserve its position, orientation and zoom while updating the projection correctly. Duplicate, zero and non-finite dimensions do not affect the camera or drawing surface.
 
+## Version 10 additions
+
+- Mobile editing/calculating/applied feedback now occupies the same summary grid slot, rather than inserting a temporary full-width row above the city. Error feedback remains accessible and visible in the existing error banner/details panel.
+- Resize observations now queue their latest dimensions without touching the displayed frame. The renderer applies a real size change immediately before drawing; changes that settle back to the current size cause no buffer resize.
+- Regression checks retain the same city placeholder canvas, summary and controls through pending predictions, applied results, notification expiry, a graphics toggle and failed requests. A renderer-spy check confirms resize observations do not clear the buffer until the render boundary. Existing camera-pose checks remain in place.
+- Recent production requests during consecutive hourly updates were successful background POSTs to the prediction endpoint, without corresponding page-document requests; no reload path or keyed City remount was found in the application source.
+
 ## Scope and limits
 
 This is an evaluated scenario explorer using a single historical year. Spatial geometry, routing, durations and station activity are illustrative. It does not provide live operations, real station occupancy, causal claims, or calibrated prediction intervals. Performance on lower-powered devices and long-running memory use has not been exhaustively benchmarked.

@@ -1709,7 +1709,7 @@ export default function City(props: CityProps) {
       el.clientWidth,
       el.clientHeight,
     );
-    const resize = () => resizeViewport(el.clientWidth, el.clientHeight);
+    const resize = () => resizeViewport.queue(el.clientWidth, el.clientHeight);
     const sizeObserver = new ResizeObserver(resize);
     sizeObserver.observe(el);
     window.addEventListener('resize', resize);
@@ -1950,6 +1950,7 @@ export default function City(props: CityProps) {
       }
       controls.enableDamping = !p.reduced;
       controls.update();
+      resizeViewport.flush();
       renderer.render(scene, camera);
       frames++;
       if (now - lastFps > 1000) {

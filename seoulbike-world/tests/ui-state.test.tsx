@@ -7,7 +7,7 @@ const city = vi.hoisted(() => ({ props: {} as any }));
 vi.mock('@/components/world/City', () => ({
   default: (props: any) => {
     city.props = props;
-    return null;
+    return <canvas data-testid="retained-city" />;
   },
 }));
 vi.mock('@/components/ui/sheet', () => ({
@@ -301,4 +301,50 @@ test('activity readout changes immediately while city controls preserve predicti
   expect(city.props.view).toBe('map');
   expect(city.props.reset).toBe(reset);
   expect(read().prediction.prediction).toBe(50);
+});
+
+test('loaded city and controls survive pending updates, results and notification dismissal', async () => {
+  const canvas = container.querySelector('[data-testid="retained-city"]');
+  const summary = container.querySelector('.mobile-summary');
+  const controlBar = container.querySelector('.control-bar');
+  const unchanged = () => {
+    expect(container.querySelector('[data-testid="retained-city"]')).toBe(
+      canvas,
+    );
+    expect(canvas?.isConnected).toBe(true);
+    expect(container.querySelector('.mobile-summary')).toBe(summary);
+    expect(container.querySelector('.control-bar')).toBe(controlBar);
+  };
+  await start(1);
+  unchanged();
+  expect(summary?.textContent).toContain('Updating');
+  await tick(600);
+  unchanged();
+  await act(async () => pending.at(-1)!.resolve(response(50)));
+  await tick();
+  unchanged();
+  expect(summary?.textContent).toContain('50');
+  await tick(5600);
+  unchanged();
+  await clickButton('World settings');
+  unchanged();
+  const shadows = container.querySelector<HTMLButtonElement>(
+    '[role="switch"][aria-label="Detailed shadows"]',
+  );
+  expect(shadows).toBeTruthy();
+  await act(async () => shadows!.click());
+  expect(city.props.quality).toBe(false);
+  unchanged();
+  await start(2);
+  await tick(600);
+  await act(async () =>
+    pending
+      .at(-1)!
+      .resolve(
+        new Response(JSON.stringify({ error: 'Unavailable' }), { status: 503 }),
+      ),
+  );
+  await tick();
+  unchanged();
+  expect(summary?.textContent).toContain('Update failed');
 });
