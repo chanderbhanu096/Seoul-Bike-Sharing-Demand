@@ -77,6 +77,13 @@ Performed in the Codex In-app Browser on an Apple M2 Mac (Mac14,7), macOS 27.0.
 - All 19 core/HTTP checks and nine UI checks passed; TypeScript and the production build passed. The historical prediction/simulation contract is unchanged.
 - Shortened the public address to https://seoul.chanderrana096.chatgpt.site/. The hosting account portion is retained, as requested after explaining the custom-domain requirement.
 
+## Version 8 additions
+
+- Phone layouts at 320×568 and 390×844 keep the main city viewport at approximately 61% and 73% of screen height respectively, with no horizontal overflow. Large summary cards and the eight-icon desktop rail are hidden on phones.
+- Verified Details and More, panel close and outside-tap dismissal, scrollable time controls at 320px, full-day start at 15×, stopping playback from Details, and river-view selection returning to the city. Full desktop controls remain visible at 1440×900.
+- Mobile retains one signed rental-change notification at a time and links to full event history. Panel changes reset their scroll position.
+- Removed the public LinkedIn post text asset and the demo-page download link.
+
 ## Scope and limits
 
 This is an evaluated scenario explorer using a single historical year. Spatial geometry, routing, durations and station activity are illustrative. It does not provide live operations, real station occupancy, causal claims, or calibrated prediction intervals. Performance on lower-powered devices and long-running memory use has not been exhaustively benchmarked.

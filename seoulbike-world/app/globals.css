@@ -1915,3 +1915,367 @@ button:active:not(:disabled) {
 .world-app.cinematic .world-dock {
   display: none;
 }
+
+/* On phones, reveal details on demand and give the city the main viewport. */
+.mobile-summary,
+.mobile-nav,
+.mobile-fullscreen,
+.toast-details {
+  display: none;
+}
+.mobile-tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mobile-tool-list > button,
+.mobile-tool-list > a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 4px;
+  border-bottom: 1px solid #294d3d1a;
+  color: #193f30;
+  text-align: left;
+  font-size: 16px;
+}
+.mobile-tool-list > :is(button, a) > svg {
+  flex-shrink: 0;
+}
+.mobile-tool-list > :is(button, a) > svg:last-child {
+  margin-left: auto;
+}
+.mobile-tool-list small {
+  display: block;
+  margin-top: 3px;
+  color: #557365;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.mobile-detail-estimate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+}
+.mobile-detail-estimate > strong {
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+.mobile-detail-estimate > p {
+  color: #557365;
+  line-height: 1.5;
+}
+@media (max-width: 767px),
+  (max-width: 1100px) and (max-height: 600px) and (pointer: coarse) {
+  .world-app:not(.cinematic) {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden;
+  }
+  .world-app:not(.cinematic) .world-view {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    padding: 0;
+    gap: 0;
+    min-height: 0;
+  }
+  .world-view .brand {
+    grid-row: 1;
+    grid-column: 1;
+    justify-self: stretch;
+    align-items: center;
+    width: 100%;
+    padding: max(6px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right)) 4px
+      max(12px, env(safe-area-inset-left));
+    gap: 8px;
+    border: 0;
+    border-radius: 0;
+    background: #f5f8f1;
+    box-shadow: none;
+  }
+  .brand h1 {
+    font-size: 18px;
+  }
+  .brand .brand-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .brand-icon svg {
+    width: 21px;
+  }
+  .mobile-fullscreen {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 36px;
+    margin-left: auto;
+    color: #335f4b;
+  }
+  .world-view .scenario-summary,
+  .world-view .rental-summary,
+  .world-dock > .run-status,
+  .world-dock .tool-rail,
+  .world-app .world-dock .world-footer {
+    display: none;
+  }
+  .mobile-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    grid-row: 2;
+    grid-column: 1;
+    width: 100%;
+    min-width: 0;
+    min-height: 56px;
+    padding: 6px max(12px, env(safe-area-inset-right)) 10px
+      max(12px, env(safe-area-inset-left));
+    color: #214836;
+    background: #f5f8f1;
+    border-bottom: 1px solid #2148361a;
+    text-align: left;
+  }
+  .mobile-weather,
+  .mobile-estimate,
+  .mobile-summary-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mobile-weather {
+    padding-right: 12px;
+    border-right: 1px solid #21483626;
+    font-size: 18px;
+  }
+  .mobile-estimate {
+    gap: 3px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .mobile-estimate strong {
+    font-size: 24px;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .mobile-estimate > span {
+    font-size: 12px;
+    line-height: 1.2;
+    color: #4f6e5f;
+  }
+  .mobile-summary-action {
+    margin-left: auto;
+    font-size: 14px;
+  }
+  .mobile-model-status {
+    width: 100%;
+    color: #70520f;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+  .world-view .city-stage {
+    grid-row: 3;
+    grid-column: 1;
+    min-height: 0;
+    height: 100%;
+    border-radius: 0;
+  }
+  .world-dock {
+    padding: 6px max(8px, env(safe-area-inset-right))
+      max(4px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    background: #f5f8f1;
+    box-shadow: 0 -4px 20px #173e3010;
+  }
+  .control-bar {
+    gap: 0;
+  }
+  .control-bar .playback {
+    flex: 1;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 2px 4px;
+    border-radius: 12px;
+    box-shadow: none;
+    flex-wrap: nowrap;
+  }
+  .playback > button:first-child {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  .playback .clock-button {
+    min-width: 60px;
+    height: 44px;
+    padding: 0 4px;
+  }
+  .playback .speed-options {
+    display: flex;
+    padding: 0;
+    margin: 0;
+    gap: 0;
+  }
+  .playback .speed-options button {
+    width: 40px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 14px;
+  }
+  .playback > .time-range-button,
+  .playback .rider-count {
+    display: none;
+  }
+  .mobile-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 2px;
+    margin-top: 3px;
+  }
+  .mobile-nav > button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 56px;
+    padding: 6px 0;
+    gap: 4px;
+    font-size: 14px;
+    line-height: 1.2;
+    color: #315642;
+    border-radius: 10px;
+  }
+  .mobile-nav > button:active,
+  .mobile-summary:active,
+  .mobile-tool-list > button:active {
+    background: #deeadb;
+  }
+  .mobile-summary:focus-visible,
+  .mobile-nav > button:focus-visible,
+  .mobile-tool-list > :focus-visible {
+    outline: 2px solid #28774b;
+    outline-offset: -3px;
+  }
+  .world-notices {
+    inset: 10px 10px auto;
+    max-height: 38%;
+  }
+  .world-notices .toast {
+    min-height: 56px;
+    padding: 12px 90px 12px 12px;
+    border-radius: 12px;
+  }
+  .toast p,
+  .toast .toast-comparison,
+  .toast:has(.toast-change) > b {
+    display: none;
+  }
+  .toast > b {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .toast .toast-change {
+    margin: 0;
+  }
+  .toast .toast-number {
+    flex-wrap: wrap;
+    font-size: 18px;
+    gap: 4px;
+    line-height: 1.4;
+  }
+  .toast button {
+    top: 6px;
+    right: 2px;
+    width: 42px;
+    height: 44px;
+  }
+  .toast .toast-details {
+    display: grid;
+    place-items: center;
+    right: 44px;
+  }
+  [data-slot='sheet-overlay'] {
+    pointer-events: auto !important;
+    background: #152e242e !important;
+    backdrop-filter: none !important;
+  }
+  .mobile-inspector {
+    inset: auto 0 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: 82dvh;
+    border-radius: 22px 22px 0 0 !important;
+    border: 1px solid #c8d9c9 !important;
+    overflow: hidden;
+    gap: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mobile-inspector [data-slot='sheet-header'] {
+    padding: 20px 58px 12px 20px;
+  }
+  .mobile-inspector [data-slot='sheet-header'] > .eyebrow {
+    display: none;
+  }
+  .mobile-inspector [data-slot='sheet-title'] {
+    font-size: 22px;
+    line-height: 1.25;
+  }
+  .mobile-inspector .panel-copy,
+  .mobile-inspector .field-hint {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .mobile-inspector .panel-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 4px 20px 20px;
+  }
+  .mobile-inspector input,
+  .mobile-inspector select {
+    font-size: 16px;
+  }
+  .mobile-inspector [data-slot='sheet-close'] {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+  }
+  .mobile-panel-back {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: 4px;
+    min-height: 44px;
+    padding: 8px 20px 0;
+    font-size: 14px;
+    color: #486e58;
+  }
+  .mobile-panel-back + [data-slot='sheet-header'] {
+    padding-top: 8px;
+  }
+  .mobile-inspector .run-status {
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 12px;
+  }
+  .mobile-inspector
+    .run-status
+    :is(button, .follow-tag button, .timeline-running button) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .world-app.cinematic .mobile-summary,
+  .world-app.cinematic .mobile-fullscreen {
+    display: none;
+  }
+}

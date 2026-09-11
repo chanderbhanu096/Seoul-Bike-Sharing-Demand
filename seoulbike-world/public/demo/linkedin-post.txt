@@ -1,8 +1,0 @@
-I built SeoulBike World to explore bike rental demand through an interactive 3D city.
-
-Change weather and calendar conditions, see the estimated rental difference, and watch it affect new cycling journeys. The expanded world includes 24 illustrative docks, five bridges, seasonal scenery, and playback across hours, days, or repeating historical windows.
-
-Built with recorded Seoul rental data from 2017–18. The city and routes are illustrative.
-Data: UCI Seoul Bike Sharing Demand (CC BY 4.0): https://doi.org/10.24432/C5F62R
-
-#DataScience #DataVisualization #MachineLearning #ThreeJS

@@ -68,6 +68,8 @@ import {
   TrendingDown,
   Repeat2,
   Square,
+  MoreHorizontal,
+  ChevronLeft,
 } from 'lucide-react';
 type Explanation = {
   method: string;
@@ -206,6 +208,7 @@ export default function Home() {
     [worldError, setWorldError] = useState(''),
     [ready, setReady] = useState(false),
     [panel, setPanel] = useState<string | null>(null),
+    [mobileUi, setMobileUi] = useState(false),
     [mode, setMode] = useState('guided'),
     [playing, setPlaying] = useState(true),
     [speed, setSpeed] = useState(1),
@@ -259,6 +262,19 @@ export default function Home() {
     [sourceLabel, setSourceLabel] = useState(
       'Autumn afternoon · historical preset',
     );
+  useEffect(() => {
+    const query = window.matchMedia(
+      '(max-width: 767px), (max-width: 1100px) and (max-height: 600px) and (pointer: coarse)',
+    );
+    const update = () => setMobileUi(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+  const panelBody = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (panelBody.current) panelBody.current.scrollTop = 0;
+  }, [panel]);
   const timelineRequest = useRef(0),
     sliderEditing = useRef(false),
     revision = useRef(0),
@@ -822,7 +838,68 @@ export default function Home() {
     playback: 'A day in the data',
     timeline: 'Let the hours unfold',
     explore: 'Explore Seoul',
+    details: 'Your city right now',
+    tools: 'More ways to explore',
   };
+  const runStatus = (
+    <div className="run-status">
+      {comparison && (
+        <div className="comparison-tag glass">
+          <Layers size={15} />
+          <button
+            className={comparison === 'A' ? 'active' : ''}
+            onClick={() => replay('A')}
+          >
+            A · Baseline
+          </button>
+          <button
+            className={comparison === 'B' ? 'active' : ''}
+            onClick={() => replay('B')}
+          >
+            B · Scenario
+          </button>
+          <span>
+            {stats.minutes.toFixed(1)} min · {stats.departures} starts
+          </span>
+        </div>
+      )}
+      {follow && (
+        <div className="follow-tag glass">
+          <Bike size={14} />
+          {followId !== null
+            ? `Following cyclist ${followId + 1}`
+            : 'Waiting for a cyclist'}
+          <button aria-label="Stop following" onClick={() => setFollow(false)}>
+            <X size={14} />
+          </button>
+        </div>
+      )}
+      {historical && timelinePlan && (
+        <div className="timeline-running glass">
+          <span className="status-dot" />
+          {timelinePlan.mode === 'continuous' ? (
+            <Repeat2 size={14} />
+          ) : (
+            <CalendarClock size={14} />
+          )}
+          <span>
+            {timelinePlan.rows[timelineIndex].scenario.date} ·{' '}
+            {timelineIndex + 1}/{timelinePlan.hours} hours
+            {timelinePlan.mode === 'continuous'
+              ? ` · cycle ${Math.floor(timelineSegment / timelinePlan.hours) + 1}`
+              : ''}
+          </span>
+          <button
+            aria-label="Stop time playback"
+            title="Stop time playback"
+            onClick={stopTimeline}
+          >
+            <Square size={13} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
   return (
     <main
       className={`world-app ${cinematic ? 'cinematic' : ''} ${panel ? 'panel-open' : ''} ${applied.hour < 6 || applied.hour > 19 ? 'night-ui' : ''}`}
@@ -869,45 +946,56 @@ export default function Home() {
                 aria-live="polite"
                 aria-atomic="false"
               >
-                {visibleEvents.map((e) => (
-                  <div
-                    className="toast glass"
-                    key={e.id}
-                    style={{
-                      animation: persistent
-                        ? 'toast-in .3s ease'
-                        : `toast-in .3s ease, toast-out .4s ease ${extended ? 11.6 : 5.1}s forwards`,
-                    }}
-                  >
-                    <b>{e.title}</b>
-                    {e.change && (
-                      <div className={`toast-change ${e.change.direction}`}>
-                        <span className="toast-number">
-                          {e.change.difference > 0 ? (
-                            <TrendingUp size={23} />
-                          ) : e.change.difference < 0 ? (
-                            <TrendingDown size={23} />
-                          ) : (
-                            <Bike size={23} />
-                          )}
-                          {e.change.headline}
-                        </span>
-                        <span className="toast-comparison">
-                          {e.change.detail} · vs previous scenario
-                        </span>
-                      </div>
-                    )}
-                    <p>{e.body}</p>
-                    <button
-                      aria-label="Dismiss notification"
-                      onClick={() =>
-                        setVisibleEvents((v) => v.filter((x) => x.id !== e.id))
-                      }
+                {(mobileUi ? visibleEvents.slice(-1) : visibleEvents).map(
+                  (e) => (
+                    <div
+                      className="toast glass"
+                      key={e.id}
+                      style={{
+                        animation: persistent
+                          ? 'toast-in .3s ease'
+                          : `toast-in .3s ease, toast-out .4s ease ${extended ? 11.6 : 5.1}s forwards`,
+                      }}
                     >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ))}
+                      <b>{e.title}</b>
+                      {e.change && (
+                        <div className={`toast-change ${e.change.direction}`}>
+                          <span className="toast-number">
+                            {e.change.difference > 0 ? (
+                              <TrendingUp size={23} />
+                            ) : e.change.difference < 0 ? (
+                              <TrendingDown size={23} />
+                            ) : (
+                              <Bike size={23} />
+                            )}
+                            {e.change.headline}
+                          </span>
+                          <span className="toast-comparison">
+                            {e.change.detail} · vs previous scenario
+                          </span>
+                        </div>
+                      )}
+                      <p>{e.body}</p>
+                      <button
+                        className="toast-details"
+                        aria-label="View notification details"
+                        onClick={() => setPanel('history')}
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                      <button
+                        aria-label="Dismiss notification"
+                        onClick={() =>
+                          setVisibleEvents((v) =>
+                            v.filter((x) => x.id !== e.id),
+                          )
+                        }
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ),
+                )}
               </div>
             )}
             {shownError && (
@@ -937,7 +1025,41 @@ export default function Home() {
             <p>A city in motion.</p>
           </div>
           <span className="version">V.05</span>
+          <button
+            className="mobile-fullscreen"
+            aria-label="Show city fullscreen"
+            onClick={() => setCinematic(true)}
+          >
+            <Maximize size={18} />
+          </button>
         </header>
+        <button
+          className="mobile-summary"
+          aria-label="Show current conditions and rental details"
+          aria-haspopup="dialog"
+          onClick={() => setPanel('details')}
+        >
+          <span className="mobile-weather">
+            <WeatherIcon size={21} />
+            <b>{Math.round(draft.temperature)}°</b>
+          </span>
+          <span className="mobile-estimate">
+            <strong>
+              {result ? Math.round(result.prediction).toLocaleString() : '—'}
+            </strong>
+            <span>rentals / hour</span>
+          </span>
+          <span className="mobile-summary-action">
+            Details <ChevronRight size={16} />
+          </span>
+          {phase !== 'applied' && (
+            <span className="mobile-model-status">
+              {phase === 'error'
+                ? 'Update failed · showing previous estimate'
+                : 'Updating · showing previous estimate'}
+            </span>
+          )}
+        </button>
         <aside className="scenario-summary" aria-label="Current conditions">
           <div className="scenario-card glass">
             <div className="eyebrow">
@@ -1099,66 +1221,7 @@ export default function Home() {
         </aside>
       </div>
       <div className="world-dock">
-        <div className="run-status">
-          {comparison && (
-            <div className="comparison-tag glass">
-              <Layers size={15} />
-              <button
-                className={comparison === 'A' ? 'active' : ''}
-                onClick={() => replay('A')}
-              >
-                A · Baseline
-              </button>
-              <button
-                className={comparison === 'B' ? 'active' : ''}
-                onClick={() => replay('B')}
-              >
-                B · Scenario
-              </button>
-              <span>
-                {stats.minutes.toFixed(1)} min · {stats.departures} starts
-              </span>
-            </div>
-          )}
-          {follow && (
-            <div className="follow-tag glass">
-              <Bike size={14} />
-              {followId !== null
-                ? `Following cyclist ${followId + 1}`
-                : 'Waiting for a cyclist'}
-              <button
-                aria-label="Stop following"
-                onClick={() => setFollow(false)}
-              >
-                <X size={14} />
-              </button>
-            </div>
-          )}
-          {historical && timelinePlan && (
-            <div className="timeline-running glass">
-              <span className="status-dot" />
-              {timelinePlan.mode === 'continuous' ? (
-                <Repeat2 size={14} />
-              ) : (
-                <CalendarClock size={14} />
-              )}
-              <span>
-                {timelinePlan.rows[timelineIndex].scenario.date} ·{' '}
-                {timelineIndex + 1}/{timelinePlan.hours} hours
-                {timelinePlan.mode === 'continuous'
-                  ? ` · cycle ${Math.floor(timelineSegment / timelinePlan.hours) + 1}`
-                  : ''}
-              </span>
-              <button
-                aria-label="Stop time playback"
-                title="Stop time playback"
-                onClick={stopTimeline}
-              >
-                <Square size={13} />
-              </button>
-            </div>
-          )}
-        </div>
+        {runStatus}
         <div className="control-bar">
           <nav className="tool-rail glass" aria-label="World tools">
             <button
@@ -1302,6 +1365,24 @@ export default function Home() {
             </span>
           </div>
         </div>
+        <nav className="mobile-nav" aria-label="City controls">
+          <button aria-haspopup="dialog" onClick={() => setPanel('conditions')}>
+            <SlidersHorizontal size={20} />
+            <span>Conditions</span>
+          </button>
+          <button aria-haspopup="dialog" onClick={() => setPanel('explore')}>
+            <Map size={20} />
+            <span>Views</span>
+          </button>
+          <button aria-haspopup="dialog" onClick={() => setPanel('timeline')}>
+            <CalendarClock size={20} />
+            <span>Time range</span>
+          </button>
+          <button aria-haspopup="dialog" onClick={() => setPanel('tools')}>
+            <MoreHorizontal size={20} />
+            <span>More</span>
+          </button>
+        </nav>
         <footer className="world-footer">
           <span>Seoul-inspired geography · Routes & docks: illustrative</span>
           <span>
@@ -1315,13 +1396,24 @@ export default function Home() {
         </button>
       )}
       <Sheet
-        modal={false}
+        modal={mobileUi}
         open={panel !== null}
         onOpenChange={(open) => {
           if (!open) setPanel(null);
         }}
       >
-        <SheetContent className="inspector-panel">
+        <SheetContent
+          className={`inspector-panel ${mobileUi ? 'mobile-inspector' : ''}`}
+          side={mobileUi ? 'bottom' : 'right'}
+        >
+          {mobileUi && panel !== 'tools' && panel !== 'details' && (
+            <button
+              className="mobile-panel-back"
+              onClick={() => setPanel('tools')}
+            >
+              <ChevronLeft size={16} /> More tools
+            </button>
+          )}
           <SheetHeader>
             <div className="eyebrow" style={{ marginBottom: 10 }}>
               SEOULBIKE WORLD
@@ -1330,26 +1422,191 @@ export default function Home() {
               {titles[panel || '']}
             </SheetTitle>
             <SheetDescription className="panel-copy">
-              {panel === 'conditions'
-                ? 'Small changes. A different rhythm.'
-                : panel === 'compare'
-                  ? 'Pin a moment, change the inputs, and replay both.'
-                  : panel === 'explain'
-                    ? 'What changed in this particular scenario.'
-                    : panel === 'history'
-                      ? 'The latest 1,000 committed changes from this visit.'
-                      : panel === 'settings'
-                        ? 'Visual preferences never change the prediction.'
-                        : panel === 'timeline'
-                          ? 'Choose a period or keep a recorded day running.'
-                          : panel === 'explore'
-                            ? 'Choose a viewpoint and adjust cycling visibility.'
-                            : panel === 'playback'
-                              ? 'Observed rentals alongside model estimates.'
-                              : 'Evaluated on real observations. Brought to life with illustrative routes.'}
+              {panel === 'details'
+                ? 'Current conditions, rental estimates and cycling activity.'
+                : panel === 'tools'
+                  ? 'Choose a tool, then return to the city.'
+                  : panel === 'conditions'
+                    ? 'Small changes. A different rhythm.'
+                    : panel === 'compare'
+                      ? 'Pin a moment, change the inputs, and replay both.'
+                      : panel === 'explain'
+                        ? 'What changed in this particular scenario.'
+                        : panel === 'history'
+                          ? 'The latest 1,000 committed changes from this visit.'
+                          : panel === 'settings'
+                            ? 'Visual preferences never change the prediction.'
+                            : panel === 'timeline'
+                              ? 'Choose a period or keep a recorded day running.'
+                              : panel === 'explore'
+                                ? 'Choose a viewpoint and adjust cycling visibility.'
+                                : panel === 'playback'
+                                  ? 'Observed rentals alongside model estimates.'
+                                  : 'Evaluated on real observations. Brought to life with illustrative routes.'}
             </SheetDescription>
           </SheetHeader>
-          <div className="panel-body">
+          <div className="panel-body" ref={panelBody}>
+            {panel === 'details' && (
+              <>
+                <div className="mobile-detail-estimate">
+                  <span>Estimated rentals / hour</span>
+                  <strong>
+                    {result
+                      ? Math.round(result.prediction).toLocaleString()
+                      : '—'}
+                  </strong>
+                  <p>
+                    {phase === 'applied'
+                      ? sourceLabel
+                      : phase === 'error'
+                        ? 'Update failed. The previous estimate is retained.'
+                        : 'Updating. The city reflects the previous estimate.'}
+                  </p>
+                  <button
+                    className="secondary"
+                    onClick={() => setPanel('explain')}
+                  >
+                    Explain this estimate <ArrowUpRight size={16} />
+                  </button>
+                </div>
+                <div className="panel-section">
+                  <h3>Current conditions</h3>
+                  <p className="panel-copy">
+                    {weather} · {Math.round(draft.temperature)}°C ·{' '}
+                    {draft.season}
+                  </p>
+                  <p className="panel-copy">
+                    {draft.date} · {String(draft.hour).padStart(2, '0')}:00 ·{' '}
+                    {draft.functioning ? 'Service open' : 'Service closed'}
+                  </p>
+                  <button
+                    className="secondary"
+                    onClick={() => setPanel('conditions')}
+                  >
+                    <SlidersHorizontal size={16} /> Adjust conditions
+                  </button>
+                </div>
+                <div className="panel-section">
+                  <h3>Cycling activity</h3>
+                  <div className="changed-row">
+                    <span>Riding now</span>
+                    <b>{stats.riders}</b>
+                  </div>
+                  <div className="changed-row">
+                    <span>Visual starts / hour</span>
+                    <b>
+                      {result
+                        ? (result.prediction / VISUAL_SCALE).toFixed(1)
+                        : '—'}
+                    </b>
+                  </div>
+                  <p className="panel-copy">
+                    One cyclist represents {VISUAL_SCALE} rentals. Existing
+                    rides finish when the estimate changes.
+                  </p>
+                  {!applied.functioning && (
+                    <p className="note">
+                      Service is closed. No new rides start.
+                    </p>
+                  )}
+                </div>
+                {historical && timelinePlan && (
+                  <p className="note">
+                    Observed:{' '}
+                    {timelinePlan.rows[timelineIndex].observed.toLocaleString()}{' '}
+                    rentals · {timelinePlan.rows[timelineIndex].scenario.date} ·
+                    hour {timelineIndex + 1} of {timelinePlan.hours}
+                  </p>
+                )}
+                {runStatus}
+              </>
+            )}
+            {panel === 'tools' && (
+              <>
+                <div className="mobile-tool-list">
+                  <button onClick={() => setPanel('details')}>
+                    <Bike size={20} />
+                    <span>
+                      Current details
+                      <small>Conditions, rentals and riding activity</small>
+                    </span>
+                    <ChevronRight size={18} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFollow(false);
+                      setCityView('overview');
+                      setOverview((v) => v + 1);
+                      setPanel(null);
+                    }}
+                  >
+                    <Compass size={20} />
+                    <span>
+                      Reset view<small>Return to the city overview</small>
+                    </span>
+                    <ChevronRight size={18} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFollow((v) => !v);
+                      setPanel(null);
+                      if (!follow && !stats.riders)
+                        notify(
+                          'Waiting for a cyclist',
+                          'The follow camera will begin when the next journey starts.',
+                        );
+                    }}
+                  >
+                    <Focus size={20} />
+                    <span>
+                      {follow ? 'Stop following' : 'Follow a cyclist'}
+                      <small>Travel through the city with a rider</small>
+                    </span>
+                    <ChevronRight size={18} />
+                  </button>
+                  <button onClick={() => setPanel('compare')}>
+                    <Layers size={20} />
+                    <span>
+                      Compare scenarios
+                      <small>Pin a baseline and replay A / B</small>
+                    </span>
+                    <ChevronRight size={18} />
+                  </button>
+                  <button onClick={() => setPanel('history')}>
+                    <History size={20} />
+                    <span>
+                      Event history
+                      <small>Full rental changes and notifications</small>
+                    </span>
+                    <ChevronRight size={18} />
+                  </button>
+                  <button onClick={() => setPanel('settings')}>
+                    <Settings size={20} />
+                    <span>
+                      Settings<small>Graphics, labels and notifications</small>
+                    </span>
+                    <ChevronRight size={18} />
+                  </button>
+                  <button onClick={() => setPanel('about')}>
+                    <Info size={20} />
+                    <span>
+                      About the model
+                      <small>Data, evaluation and limitations</small>
+                    </span>
+                    <ChevronRight size={18} />
+                  </button>
+                  <a href="/demo">
+                    <Play size={20} />
+                    <span>
+                      Watch the demo<small>A 20-second screen recording</small>
+                    </span>
+                    <ChevronRight size={18} />
+                  </a>
+                </div>
+                {runStatus}
+              </>
+            )}
+
             {panel === 'conditions' && (
               <>
                 <Tabs value={mode} onValueChange={(v) => setMode(String(v))}>
@@ -1946,8 +2203,9 @@ export default function Home() {
                     onChange={setExtended}
                   />
                   <p className="field-hint">
-                    Normally visible for 5.5 seconds, with a maximum of two on
-                    screen. The latest 1,000 events remain in the event log.
+                    Normally visible for 5.5 seconds. Mobile shows one compact
+                    message; larger screens show up to two. The latest 1,000
+                    events remain in the event log.
                   </p>
                 </div>
                 <div className="panel-section">

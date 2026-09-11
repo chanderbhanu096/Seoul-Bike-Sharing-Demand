@@ -58,13 +58,15 @@ Geographic references: [Seoul tourist map](https://english.seoul.go.kr/wp-conten
 
 ## Video demo
 
-`/demo` hosts a 20-second plain screen recording with native playback, a matching cover frame, a readable recording description, and MP4/LinkedIn-text downloads. The city links to it from Explore Seoul and the desktop caption. Assets live in `public/demo/`; metadata preload avoids downloading the video when opening the city. The demo retains the Site's public access.
+`/demo` hosts a 20-second plain screen recording with native playback, a matching cover frame, a readable recording description, and an MP4 download. The city links to it from Explore Seoul and the desktop caption. Assets live in `public/demo/`; metadata preload avoids downloading the video when opening the city. The demo retains the Site's public access.
 
 The recording shows actual controls and model results: rainy and snowy presets, holiday and service changes, numeric rental-change notifications, full-day configuration, river and Namsan views, and the completed state of a midnight-to-midnight historical run. Selected moments are trimmed and accelerated. No graphics, captions or music are added. Intermediate media and capture helpers remain in ignored `work/` and `outputs/` directories.
 
 ## Responsive layout
 
-Desktop summaries use separate flowing side columns. Playback, camera tools and run status have a reserved bottom area. At narrow widths (1,100px or less) or short viewports (780px or less), the page reflows into summaries, a dedicated city viewport and a wrapping control bar; it scrolls when needed. Notifications stay inside the city area, and inspector panels keep their controls reachable without horizontal scrolling. The renderer observes its own container, so changing layout also refits the scene.
+Desktop summaries use separate flowing side columns. Playback, camera tools and run status have a reserved bottom area. Tablets and short desktop viewports reflow into separate regions. On phones (up to 767px wide, plus short touch-screen landscape viewports), the city fills the space between a compact summary and bottom controls. Tap **Details** for current conditions, rental estimates and cycling activity. **Conditions**, **Views**, **Time range** and **More** open a bottom panel with a fixed close control and scrollable content; tapping outside also closes it. Camera selection returns directly to the city.
+
+Mobile shows one compact signed rental-change message, with full text available in Event history. The larger weather, estimate and activity cards stay hidden until requested. Comparison, follow and historical playback status remain accessible in Details and More. The renderer observes its own container, so changing layout also refits the scene. The public LinkedIn post text file and its download link have been removed.
 
 ## Saved state and tools
 

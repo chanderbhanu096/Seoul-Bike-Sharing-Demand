@@ -9,10 +9,26 @@ export const metadata: Metadata = {
 };
 
 const chapters = [
-  ['00:00', 'Change the conditions', 'Switch weather presets and see signed changes in estimated rentals.'],
-  ['00:04', 'Calendar and availability', 'Change holiday and service settings, then restore a busy commute.'],
-  ['00:07', 'Choose a full day', 'Run from midnight to midnight with recorded hourly conditions.'],
-  ['00:08', 'Explore as time moves', 'View the river and neighborhoods as the historical day advances.'],
+  [
+    '00:00',
+    'Change the conditions',
+    'Switch weather presets and see signed changes in estimated rentals.',
+  ],
+  [
+    '00:04',
+    'Calendar and availability',
+    'Change holiday and service settings, then restore a busy commute.',
+  ],
+  [
+    '00:07',
+    'Choose a full day',
+    'Run from midnight to midnight with recorded hourly conditions.',
+  ],
+  [
+    '00:08',
+    'Explore as time moves',
+    'View the river and neighborhoods as the historical day advances.',
+  ],
 ];
 
 export default function DemoPage() {
@@ -38,8 +54,8 @@ export default function DemoPage() {
           </p>
           <h1 id="demo-title">See SeoulBike World in motion.</h1>
           <p className={styles.lede}>
-            Change weather and calendar conditions, switch city views, and
-            see moments from a completed 24-hour historical run.
+            Change weather and calendar conditions, switch city views, and see
+            moments from a completed 24-hour historical run.
           </p>
           <div className={styles.facts} aria-label="Video details">
             <span>20 seconds</span>
@@ -53,11 +69,6 @@ export default function DemoPage() {
           >
             <Download size={18} /> Download the video
           </a>
-          <div className={styles.downloads}>
-            <a href="/demo/linkedin-post.txt" download>
-              LinkedIn post text
-            </a>
-          </div>
           <p className={styles.note}>
             Recorded directly from the app, trimmed and accelerated into a
             short, silent clip.
@@ -109,19 +120,19 @@ export default function DemoPage() {
             change the complete historical input bundle and display numeric
             differences in estimated rentals. The single-factor panel shows
             weather controls, a holiday override and service availability.
-            Closing service sets new rentals to zero; the evening commute
-            preset restores operating service and a higher estimate.
+            Closing service sets new rentals to zero; the evening commute preset
+            restores operating service and a higher estimate.
           </p>
           <p>
             A time range follows 24 recorded hours from September 4, 2018 at
-            midnight to September 5 at midnight. The camera moves through
-            the overview, river and Namsan views while hourly weather, daylight
-            and rental estimates update. Selected moments are trimmed and
+            midnight to September 5 at midnight. The camera moves through the
+            overview, river and Namsan views while hourly weather, daylight and
+            rental estimates update. Selected moments are trimmed and
             accelerated; the final shot shows the completed state.
           </p>
           <p>
-            The video is silent, with no added captions, graphics or music.
-            Data comes from 2017–18; the city, docks and routes are illustrative.
+            The video is silent, with no added captions, graphics or music. Data
+            comes from 2017–18; the city, docks and routes are illustrative.
           </p>
         </details>
       </section>
