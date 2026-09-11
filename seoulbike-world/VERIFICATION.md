@@ -84,6 +84,11 @@ Performed in the Codex In-app Browser on an Apple M2 Mac (Mac14,7), macOS 27.0.
 - Mobile retains one signed rental-change notification at a time and links to full event history. Panel changes reset their scroll position.
 - Removed the public LinkedIn post text asset and the demo-page download link.
 
+## Version 9 additions
+
+- Camera resizing now updates only the renderer dimensions and perspective projection. Initial framing and explicit viewpoint/reset actions retain their existing behavior.
+- Regression coverage uses a real Three.js perspective camera with a custom zoom and orientation. Repeated mobile status-row height changes and device-size changes preserve its position, orientation and zoom while updating the projection correctly. Duplicate, zero and non-finite dimensions do not affect the camera or drawing surface.
+
 ## Scope and limits
 
 This is an evaluated scenario explorer using a single historical year. Spatial geometry, routing, durations and station activity are illustrative. It does not provide live operations, real station occupancy, causal claims, or calibrated prediction intervals. Performance on lower-powered devices and long-running memory use has not been exhaustively benchmarked.

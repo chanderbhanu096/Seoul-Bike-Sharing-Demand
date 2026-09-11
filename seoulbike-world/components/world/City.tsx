@@ -18,6 +18,7 @@ import {
   type CityView,
 } from '@/lib/world/geography';
 import { timelineStepBudget } from '@/lib/timeline';
+import { createViewportResizer } from '@/lib/world/viewport';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
@@ -1702,16 +1703,13 @@ export default function City(props: CityProps) {
     };
     renderer.domElement.addEventListener('pointerdown', pointerDown);
     renderer.domElement.addEventListener('pointerup', click);
-    const resize = () => {
-      camera.aspect = el.clientWidth / el.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(el.clientWidth, el.clientHeight);
-      if (
-        followId === null &&
-        ['overview', 'map'].includes(latest.current.view || 'overview')
-      )
-        overview();
-    };
+    const resizeViewport = createViewportResizer(
+      camera,
+      renderer,
+      el.clientWidth,
+      el.clientHeight,
+    );
+    const resize = () => resizeViewport(el.clientWidth, el.clientHeight);
     const sizeObserver = new ResizeObserver(resize);
     sizeObserver.observe(el);
     window.addEventListener('resize', resize);

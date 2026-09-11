@@ -11,7 +11,7 @@
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
     "format": "oxfmt",
-    "test": "tsx --test tests/acceptance.test.ts && vitest run",
+    "test": "tsx --test tests/acceptance.test.ts tests/viewport.test.ts && vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
