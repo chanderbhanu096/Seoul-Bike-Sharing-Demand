@@ -1,0 +1,2 @@
+# Preserve the original UCI dataset bytes and published checksum.
+/training/data/SeoulBikeData.csv -text whitespace=cr-at-eol

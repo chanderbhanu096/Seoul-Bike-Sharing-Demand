@@ -1,0 +1,1 @@
+Original asphalt, brick and concrete material textures generated for SeoulBike World with OpenAI ImageGen on 11 September 2026. Used as repeating albedo and bump maps; generated surfaces are illustrative.

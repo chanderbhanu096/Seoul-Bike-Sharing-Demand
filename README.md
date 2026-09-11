@@ -1,5 +1,21 @@
 # Seoul Bike Sharing Demand — End-to-End Project
 
+## SeoulBike World — interactive app
+
+Explore an interactive 3D Seoul city with weather controls, numeric rental-change notifications, multiple camera views, and hourly, multi-day or continuous historical simulation. The layout adapts to mobile screens and enlarged browser views.
+
+[Open the public app](https://seoul.chanderrana096.chatgpt.site/) · [Watch the 20-second demo](https://seoul.chanderrana096.chatgpt.site/demo) · [App documentation](seoulbike-world/README.md)
+
+The app is in `seoulbike-world/`. To run it locally with Node 22.13 or later:
+
+```sh
+cd seoulbike-world
+npm ci
+npm run dev
+```
+
+The original analysis, notebooks, outputs and voice assistant prototype continue below.
+
 This repository contains a complete, step-by-step analysis and prediction pipeline for Seoul bike sharing demand, now enhanced with a voice AI assistant prototype.
 
 ## Project Overview

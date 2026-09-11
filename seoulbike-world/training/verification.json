@@ -1,0 +1,31 @@
+{
+  "fixtureCount": 21,
+  "maxError": 1.4210854715202004e-13,
+  "explanationTelescoping": "pass",
+  "availabilityZero": "pass",
+  "validation": "pass",
+  "playbackHours": 24,
+  "meanPredictionAndSupportMilliseconds": 0.18224959000000013,
+  "presetWarnings": [
+    {
+      "id": "autumn",
+      "warnings": []
+    },
+    {
+      "id": "rain",
+      "warnings": []
+    },
+    {
+      "id": "snow",
+      "warnings": []
+    },
+    {
+      "id": "commute",
+      "warnings": []
+    },
+    {
+      "id": "night",
+      "warnings": []
+    }
+  ]
+}
