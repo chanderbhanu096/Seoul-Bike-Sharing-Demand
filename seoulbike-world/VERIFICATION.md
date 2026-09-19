@@ -96,6 +96,14 @@ Performed in the Codex In-app Browser on an Apple M2 Mac (Mac14,7), macOS 27.0.
 - Regression checks retain the same city placeholder canvas, summary and controls through pending predictions, applied results, notification expiry, a graphics toggle and failed requests. A renderer-spy check confirms resize observations do not clear the buffer until the render boundary. Existing camera-pose checks remain in place.
 - Recent production requests during consecutive hourly updates were successful background POSTs to the prediction endpoint, without corresponding page-document requests; no reload path or keyed City remount was found in the application source.
 
+## Version 11 additions — 19 September 2026
+
+- Added collision-aware neighborhood infill, stepped rooftops, window variation on all four faces, market stalls, bus shelters, boulevard lighting, parked cars and instanced decorative pedestrians. Parking avoids crossings; new street furniture sits behind the pedestrian corridor.
+- Rain and snow have independent buffers and speeds, bounded density, conservative culling, and mobile population limits. Settled snow uses upward-facing surface normals, leaves roads mostly clear, and remains visible with reduced motion. Dry scenes skip the snow-noise calculation.
+- Added gradual day/night lighting, cloud banks that fade close to the camera, atmospheric haze, warm/cool window lights, streetlight pools, bridge lighting and river glimmers. All environmental updates reuse the existing scene; instanced GPU resources are disposed on teardown.
+- Local browser inspection covered the river view in daylight, snowfall and rainy night conditions, plus compact mobile controls at 390 × 844. No shader errors appeared during these checks. The browser reported 60 frames/second in the mobile-sized rainy scene on the local Mac; this is not a phone hardware benchmark.
+- Reduced motion retains settled snow while stopping weather particles and decorative walking. Mobile rental updates retain the current river framing. All 22 core/HTTP/camera checks and 10 UI checks passed; type checking and the production build passed.
+
 ## Scope and limits
 
 This is an evaluated scenario explorer using a single historical year. Spatial geometry, routing, durations and station activity are illustrative. It does not provide live operations, real station occupancy, causal claims, or calibrated prediction intervals. Performance on lower-powered devices and long-running memory use has not been exhaustively benchmarked.

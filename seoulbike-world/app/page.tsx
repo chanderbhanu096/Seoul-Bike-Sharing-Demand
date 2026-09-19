@@ -2141,7 +2141,10 @@ export default function Home() {
                   <p className="panel-copy">
                     <TreePine size={16} /> Cherry blossoms in spring, golden
                     ginkgo in autumn, and evergreen pines on Namsan. The trees
-                    follow your selected season.
+                    follow your selected season. Snow settles on roofs and
+                    parks; rain darkens streets and brings out umbrellas. Clouds
+                    drift with the wind, and windows and streetlights glow after
+                    dusk.
                   </p>
                 </div>
                 <div className="note">

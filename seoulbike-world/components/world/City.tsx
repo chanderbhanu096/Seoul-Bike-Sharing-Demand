@@ -19,6 +19,8 @@ import {
 } from '@/lib/world/geography';
 import { timelineStepBudget } from '@/lib/timeline';
 import { createViewportResizer } from '@/lib/world/viewport';
+import { createAtmosphere } from '@/lib/world/atmosphere';
+import { createStreetLife } from '@/lib/world/street-life';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import {
@@ -83,6 +85,14 @@ export default function City(props: CityProps) {
       scene = new THREE.Scene();
     scene.background = new THREE.Color('#bbd2d2');
     scene.fog = new THREE.Fog('#bbd2d2', 500, 1350);
+    const compact = window.matchMedia(
+      '(max-width: 767px), (pointer: coarse)',
+    ).matches;
+    const atmosphere = createAtmosphere(
+      scene,
+      latest.current.scenario,
+      compact,
+    );
     const pmrem = new THREE.PMREMGenerator(renderer);
     const room = new RoomEnvironment();
     const environment = pmrem.fromScene(room, 0.04);
@@ -104,6 +114,8 @@ export default function City(props: CityProps) {
     }
     const signs: THREE.Mesh[] = [];
     const seasonalFoliage: THREE.Mesh[] = [];
+    const lampPositions: THREE.Vector3[] = [];
+    const footprints: { x: number; z: number; w: number; d: number }[] = [];
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
     renderer.setSize(el.clientWidth, el.clientHeight);
     renderer.shadowMap.enabled = true;
@@ -309,13 +321,14 @@ export default function City(props: CityProps) {
     water.material.envMapIntensity = 0.65;
     water.material.onBeforeCompile = (shader) => {
       shader.uniforms.riverTime = { value: 0 };
+      shader.uniforms.riverNight = atmosphere.surface.night;
       shader.vertexShader = 'varying vec2 riverXZ;\n' + shader.vertexShader;
       shader.vertexShader = shader.vertexShader.replace(
         '#include <begin_vertex>',
         '#include <begin_vertex>\n riverXZ = position.xz;',
       );
       shader.fragmentShader =
-        `varying vec2 riverXZ; uniform float riverTime;
+        `varying vec2 riverXZ; uniform float riverTime; uniform float riverNight;
         float riverHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
         float riverNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(riverHash(i),riverHash(i+vec2(1,0)),f.x),mix(riverHash(i+vec2(0,1)),riverHash(i+vec2(1,1)),f.x),f.y);}
       ` + shader.fragmentShader;
@@ -326,6 +339,13 @@ export default function City(props: CityProps) {
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <color_fragment>',
         '#include <color_fragment>\n diffuseColor.rgb *= .89 + .16 * riverNoise(riverXZ*.11+riverTime*.006);',
+      );
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
+          float glimmer=pow(max(0.,sin(riverXZ.x*2.4+riverNoise(riverXZ*.7+riverTime*.06)*4.)),14.);
+          float reflections=exp(-pow((riverXZ.x-18.)/4.,2.))+exp(-pow((riverXZ.x+20.)/3.,2.))+exp(-pow((riverXZ.x-50.)/3.,2.));
+          totalEmissiveRadiance+=vec3(.34,.51,.57)*glimmer*reflections*riverNight*.55;`,
       );
       water.material.userData.shader = shader;
     };
@@ -438,6 +458,52 @@ export default function City(props: CityProps) {
       )
         return;
       cyl(x, base + 1.4, z, 0.12, 0.22, 2.7, '#7b6f4c');
+      if (kind !== 'pine') {
+        for (let k = 0; k < 4; k++) {
+          const a = (k * Math.PI) / 2 + 0.35;
+          const start = new THREE.Vector3(x, base + 1.65, z);
+          const tip = new THREE.Vector3(
+            x + Math.cos(a) * r * 0.85,
+            base + 3.25,
+            z + Math.sin(a) * r * 0.85,
+          );
+          geom(
+            new THREE.TubeGeometry(
+              new THREE.LineCurve3(start, tip),
+              1,
+              0.065,
+              5,
+              false,
+            ),
+            '#7b6f4c',
+            0,
+            0,
+            0,
+          );
+          const twig = tip
+            .clone()
+            .add(
+              new THREE.Vector3(
+                Math.cos(a + 0.6) * r * 0.3,
+                0.5,
+                Math.sin(a + 0.6) * r * 0.3,
+              ),
+            );
+          geom(
+            new THREE.TubeGeometry(
+              new THREE.LineCurve3(start.clone().lerp(tip, 0.7), twig),
+              1,
+              0.035,
+              4,
+              false,
+            ),
+            '#7b6f4c',
+            0,
+            0,
+            0,
+          );
+        }
+      }
       if (kind === 'pine') {
         for (let layer = 0; layer < 3; layer++) {
           const y = base + 2 + layer * 0.9,
@@ -479,8 +545,6 @@ export default function City(props: CityProps) {
             colors[k % 2],
           );
         }
-        for (const dx of [-0.42, 0.4])
-          box(x + dx, base + 2, z, 0.08, 1.5, 0.08, '#7b6f4c', dx);
       }
     };
     const bench = (x: number, z: number, ry = 0) => {
@@ -493,6 +557,7 @@ export default function City(props: CityProps) {
       cyl(x, 2.2, z, 0.065, 0.1, 4, '#536c65');
       box(x + 0.4, 4.2, z, 1, 0.12, 0.28, '#55675e');
       sphere(x + 0.74, 4.1, z, 0.14, '#fff0b4');
+      lampPositions.push(new THREE.Vector3(...toWorld(x + 0.74, 0.53, z)));
     };
     const sign = (
       text: string,
@@ -553,6 +618,7 @@ export default function City(props: CityProps) {
       h: number,
       style: number,
     ) => {
+      footprints.push({ x, z, w, d });
       const palette = [
         '#d7cbb1',
         '#ebdfc4',
@@ -574,6 +640,11 @@ export default function City(props: CityProps) {
       );
       box(x, h + 0.87, z, w * 0.6, 0.5, d * 0.55, '#a9aea0');
       box(x, h + 1.3, z, w * 0.21, 0.65, d * 0.24, '#b6bba9');
+      if (h > 15 && style % 2 === 0) {
+        box(x - w * 0.12, h + 1.8, z, w * 0.58, 2.7, d * 0.58, '#93a9a0');
+        box(x - w * 0.12, h + 3.2, z, w * 0.62, 0.13, d * 0.62, '#65d6da');
+        cyl(x - w * 0.12, h + 4.1, z, 0.035, 0.08, 1.8, '#b6bba9');
+      }
       // Parapets, roof vents, tanks, solar panels, cornices and balconies.
       for (const dz of [-d / 2, d / 2])
         box(x, h + 0.86, z + dz, w, 0.55, 0.16, '#c2b8a1');
@@ -684,6 +755,9 @@ export default function City(props: CityProps) {
           }
         }
         for (let wx = -w / 2 + 0.7; wx < w / 2 - 0.35; wx += 1.5) {
+          const windowColor = ['#d6b783', '#9dbac5', '#334b60', '#627e7b'][
+            Math.floor(hash(479, bi, Math.round(floor * 17 + wx * 13)) * 4)
+          ];
           box(
             x + wx,
             floor + 0.45,
@@ -691,7 +765,7 @@ export default function City(props: CityProps) {
             0.6,
             0.84,
             0.035,
-            '#627e7b',
+            windowColor,
           );
           box(
             x + wx,
@@ -718,19 +792,24 @@ export default function City(props: CityProps) {
             0.6,
             0.84,
             0.035,
-            '#718b87',
+            windowColor,
           );
         }
         for (let dz = -d / 2 + 0.7; dz < d / 2 - 0.35; dz += 1.5)
-          box(
-            x + w / 2 + 0.018,
-            floor + 0.45,
-            z + dz,
-            0.035,
-            0.84,
-            0.6,
-            '#6e8881',
-          );
+          for (const side of [-1, 1])
+            box(
+              x + side * (w / 2 + 0.018),
+              floor + 0.45,
+              z + dz,
+              0.035,
+              0.84,
+              0.6,
+              ['#d6b783', '#9dbac5', '#334b60'][
+                Math.floor(
+                  hash(482, bi, Math.round(floor * 13 + dz * 19 + side)) * 3,
+                )
+              ],
+            );
       }
       if (style % 3 === 0) {
         box(x, 1.6, z + d / 2 + 0.45, w * 0.85, 0.17, 1.15, '#426f62');
@@ -906,6 +985,7 @@ export default function City(props: CityProps) {
     }
     // Low palace courtyards and hanok roofs north of Namsan.
     const hanok = (x: number, z: number, w: number, d: number, h = 2) => {
+      footprints.push({ x, z, w: w + 1.3, d: d + 1 });
       box(x, h / 2 + 0.4, z, w, h, d, '#e5d6b6');
       for (const dx of [-w * 0.4, 0, w * 0.4])
         box(x + dx, h / 2 + 0.4, z + d / 2 + 0.08, 0.18, h, 0.2, '#794e38');
@@ -1225,6 +1305,75 @@ export default function City(props: CityProps) {
     hanok(104, 43, 8, 5, 2.4);
     box(104, 0.5, 41, 17, 0.14, 1.5, '#ddd4b0');
     for (const x of [94, 111]) tree(x, 45, 1.4, 'willow');
+    // Infill respects existing buildings, public spaces and the shared road corridors.
+    const publicSpaces = [
+      { x: -36, z: -35, w: 29, d: 34 },
+      { x: 0, z: -25.5, w: 25, d: 20 },
+      { x: -1, z: -46.5, w: 30, d: 18 },
+      { x: 34, z: 25.5, w: 28, d: 17 },
+      { x: 103, z: 33, w: 25, d: 34 },
+      { x: -72, z: -75, w: 24, d: 18 },
+      { x: -37, z: -75, w: 24, d: 18 },
+      { x: -1, z: -75, w: 22, d: 18 },
+      { x: 62, z: 43, w: 9, d: 9 },
+    ];
+    let infill = 0;
+    for (const z of [-74, -54, -43, -25, 25, 43, 54, 74])
+      for (let x = -109; x <= 110; x += 8.5) {
+        const w = 4.4 + hash(940, x + 120, z + 90) * 1.3,
+          d = 4.6;
+        if (
+          XS.some((road) => Math.abs(x - road) < w / 2 + 4.2) ||
+          ZS.some((road) => Math.abs(z - road) < d / 2 + 4.2) ||
+          [...publicSpaces, ...footprints].some(
+            (f) =>
+              Math.abs(x - f.x) < (w + f.w) / 2 + 1.3 &&
+              Math.abs(z - f.z) < (d + f.d) / 2 + 1.3,
+          )
+        )
+          continue;
+        building(
+          x,
+          z,
+          w,
+          d,
+          4 + hash(944, x + 120, z + 90) * (z > 0 ? 12 : 7),
+          [1, 2, 4, 5][infill++ % 4],
+        );
+        if (infill % 3 === 0)
+          tree(x + w / 2 + 1.1, z, 0.68, infill % 2 ? 'cherry' : 'ginkgo');
+      }
+    // Lit boulevard furniture, transit shelters and a small market add street scale.
+    for (const z of ZS)
+      for (let x = -108; x < 112; x += 17) {
+        if (XS.some((road) => Math.abs(road - x) < 6)) continue;
+        lamp(x, z - 4.4);
+        if (Math.round(x) % 3 === 0) {
+          box(x, 1.25, z + 5.0, 3.1, 1.6, 0.12, '#9dbac5');
+          box(x, 2.2, z + 4.55, 3.5, 0.16, 1.3, '#456b68');
+          for (const dx of [-1.4, 1.4])
+            box(x + dx, 1.3, z + 4.9, 0.08, 1.9, 0.08, '#536c65');
+          bench(x, z + 4.8);
+        }
+      }
+    for (let i = 0; i < 6; i++) {
+      const x = -11 + i * 4.2;
+      box(x, 1, -56.2, 2.8, 1.2, 1.4, '#ad8853');
+      box(x, 2.35, -56.2, 3.1, 0.22, 1.9, i % 2 ? '#b85c50' : '#426f62');
+      for (const dx of [-1.3, 1.3])
+        box(x + dx, 1.8, -56.2, 0.08, 1.2, 0.08, '#536c65');
+      for (let k = 0; k < 4; k++)
+        sphere(
+          x - 0.9 + k * 0.6,
+          1.75,
+          -55.95,
+          0.19,
+          i % 2 ? '#d8c16e' : '#d89982',
+        );
+    }
+    for (const x of BRIDGE_XS)
+      for (const side of [-1, 1])
+        box(x + side * 2.58, 2.66, 0, 0.08, 0.07, 21, '#65d6da');
     // Twenty-four bike stations, including the new outer neighborhoods.
     for (const [i, n] of stations.entries()) {
       const [dockX, , dockZ] = stationPlanPositions[i];
@@ -1395,7 +1544,16 @@ export default function City(props: CityProps) {
           m.color.lerp(new THREE.Color('#f3e6d0'), 0.45);
       }
       if (
-        ['#627e7b', '#718b87', '#6e8881', '#819c91', '#375c6a'].includes(color)
+        [
+          '#627e7b',
+          '#718b87',
+          '#6e8881',
+          '#819c91',
+          '#375c6a',
+          '#d6b783',
+          '#9dbac5',
+          '#334b60',
+        ].includes(color)
       ) {
         m.roughness = 0.22;
         m.metalness = 0.28;
@@ -1431,6 +1589,26 @@ export default function City(props: CityProps) {
         m.emissive.set('#80b9c3');
         m.emissiveIntensity = 0.4;
       }
+      const glazing = [
+        '#627e7b',
+        '#718b87',
+        '#6e8881',
+        '#819c91',
+        '#375c6a',
+        '#d6b783',
+        '#9dbac5',
+        '#334b60',
+        '#65d6da',
+        '#fff0b4',
+        '#91c4cc',
+        '#a6d4cc',
+      ];
+      if (!glazing.includes(color))
+        atmosphere.coat(
+          m,
+          color === '#6f7d7b' ? 0.12 : 1,
+          color === '#6f7d7b' ? 0.25 : 0.1,
+        );
       mats.set(color, m);
       const mesh = new THREE.Mesh(merged, m);
       mesh.castShadow = true;
@@ -1449,6 +1627,7 @@ export default function City(props: CityProps) {
       scene.add(mesh);
       for (const g of geometries) g.dispose();
     }
+    const streetLife = createStreetLife(scene, lampPositions, compact);
     // Labels are wayfinding, not geographic forecasts.
     const labels = new THREE.Group();
     const label = (text: string, x: number, z: number) => {
@@ -1640,42 +1819,6 @@ export default function City(props: CityProps) {
       lastStats = last,
       frames = 0,
       ready = false;
-    const rainGeo = new THREE.BufferGeometry(),
-      rainPositions = new Float32Array(2400);
-    for (let i = 0; i < 800; i++) {
-      rainPositions[i * 3] = (hash(55, i, 1) - 0.5) * (WORLD_WIDTH + 8);
-      rainPositions[i * 3 + 1] = hash(55, i, 2) * 60;
-      rainPositions[i * 3 + 2] = (hash(55, i, 3) - 0.5) * (WORLD_DEPTH + 38);
-    }
-    rainGeo.setAttribute(
-      'position',
-      new THREE.BufferAttribute(rainPositions, 3),
-    );
-    const rain = new THREE.Points(
-      rainGeo,
-      new THREE.PointsMaterial({
-        color: '#d3eced',
-        size: 0.23,
-        transparent: true,
-        opacity: 0.6,
-      }),
-    );
-    scene.add(rain);
-    const streakPositions = new Float32Array(4800),
-      streakGeo = new THREE.BufferGeometry();
-    streakGeo.setAttribute(
-      'position',
-      new THREE.BufferAttribute(streakPositions, 3),
-    );
-    const streaks = new THREE.LineSegments(
-      streakGeo,
-      new THREE.LineBasicMaterial({
-        color: '#d7e9e9',
-        transparent: true,
-        opacity: 0.45,
-      }),
-    );
-    scene.add(streaks);
     const raycaster = new THREE.Raycaster(),
       pointer = new THREE.Vector2();
     let downX = 0,
@@ -1718,6 +1861,8 @@ export default function City(props: CityProps) {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
       const p = latest.current;
+      const weatherState = atmosphere.update(p.scenario, camera, dt, p.reduced);
+      streetLife.update(dt, weatherState, p.reduced || !p.playing);
       if (p.reset !== lastReset) {
         sim.reset();
         lastReset = p.reset;
@@ -1877,41 +2022,51 @@ export default function City(props: CityProps) {
         if (m.userData.shader)
           m.userData.shader.uniforms.windTime.value = p.reduced
             ? 0
-            : now * 0.0006;
+            : now * (0.00025 + p.scenario.windSpeed * 0.0001);
       labels.visible = p.labels;
       renderer.shadowMap.enabled = p.quality;
-      const daylight = p.scenario.hour >= 6 && p.scenario.hour <= 19,
-        twilight = p.scenario.hour < 8 || p.scenario.hour > 17;
-      scene.background = new THREE.Color(
-        daylight ? (twilight ? '#bac9c1' : '#bbd2d2') : '#263e50',
-      );
-      (scene.fog as THREE.Fog).color.copy(scene.background);
-      ambient.intensity = daylight ? 1.65 : 0.65;
-      sun.intensity = daylight ? (p.scenario.rainfall > 0 ? 1.0 : 2.4) : 0.25;
+      const daylight = weatherState.daylight,
+        night = 1 - daylight,
+        twilight = Math.abs(weatherState.elevation) < 0.4;
+      ambient.intensity = 0.65 + daylight * 1.05;
+      sun.intensity = 0.2 + daylight * (2.6 - weatherState.cloud * 1.55);
+      scene.environmentIntensity = 0.2 + daylight * 0.18;
       sun.position.set(
         -Math.cos(((p.scenario.hour - 6) / 12) * Math.PI) * 65,
         40 + Math.max(0, Math.sin(((p.scenario.hour - 6) / 12) * Math.PI)) * 60,
         55,
       );
       const roadMaterial = mats.get('#6f7d7b');
-      if (roadMaterial)
-        roadMaterial.roughness = p.scenario.rainfall > 0 ? 0.3 : 0.85;
+      if (roadMaterial) roadMaterial.roughness = 0.85 - weatherState.wet * 0.63;
       sun.color.set(twilight ? '#ffd39b' : '#fff0d1');
       for (const [color, m] of mats) {
-        if (['#627e7b', '#6e8881'].includes(color)) {
+        if (['#627e7b', '#6e8881', '#d6b783'].includes(color)) {
           m.emissive.set('#edbc79');
-          m.emissiveIntensity = daylight ? 0 : 0.72;
+          m.emissiveIntensity = night * 1.1;
+        }
+        if (color === '#9dbac5') {
+          m.emissive.set('#a8d7f1');
+          m.emissiveIntensity = night * 0.72;
+        }
+        if (color === '#65d6da') {
+          m.emissive.set('#66d9ee');
+          m.emissiveIntensity = 0.1 + night * 2;
         }
         if (color === '#fff0b4') {
           m.emissive.set('#ffce82');
-          m.emissiveIntensity = daylight ? 0.1 : 2;
+          m.emissiveIntensity = 0.1 + night * 2.4;
         }
       }
       for (const signMesh of signs)
         (signMesh.material as THREE.MeshStandardMaterial).emissiveIntensity =
-          daylight ? 0.08 : 0.65;
+          0.08 + night * 0.85;
 
-      water.material.color.set(daylight ? '#388f96' : '#21465c');
+      water.material.color.setRGB(
+        0.045 + daylight * 0.05,
+        0.105 + daylight * 0.15,
+        0.16 + daylight * 0.14,
+      );
+      water.material.roughness = 0.26 + weatherState.rain * 0.18;
       const verts = water.geometry.attributes.position;
       const movingWater = !p.reduced && p.waterMotion !== false;
       for (let i = 0; i < verts.count; i++)
@@ -1931,23 +2086,6 @@ export default function City(props: CityProps) {
         water.material.userData.shader.uniforms.riverTime.value = movingWater
           ? now * 0.001
           : 0;
-      rain.visible = !p.reduced && p.scenario.snowfall > 0;
-      streaks.visible = !p.reduced && p.scenario.rainfall > 0;
-      if (rain.visible || streaks.visible) {
-        rain.material.size = p.scenario.snowfall > 0 ? 0.4 : 0.2;
-        for (let i = 0; i < 800; i++) {
-          rainPositions[i * 3 + 1] -= dt * (p.scenario.snowfall > 0 ? 3 : 30);
-          if (rainPositions[i * 3 + 1] < 0) rainPositions[i * 3 + 1] = 60;
-        }
-        rainGeo.attributes.position.needsUpdate = true;
-        for (let i = 0; i < 800; i++) {
-          const x = rainPositions[i * 3],
-            y = rainPositions[i * 3 + 1],
-            z = rainPositions[i * 3 + 2];
-          streakPositions.set([x, y, z, x + 0.15, y - 1.2, z], i * 6);
-        }
-        streakGeo.attributes.position.needsUpdate = true;
-      }
       controls.enableDamping = !p.reduced;
       controls.update();
       resizeViewport.flush();
@@ -1981,6 +2119,7 @@ export default function City(props: CityProps) {
       renderer.domElement.removeEventListener('pointerup', click);
       controls.dispose();
       scene.traverse((o) => {
+        if (o instanceof THREE.InstancedMesh) o.dispose();
         if (
           o instanceof THREE.Mesh ||
           o instanceof THREE.Points ||

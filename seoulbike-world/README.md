@@ -54,6 +54,10 @@ Explore Seoul provides eight camera views: overview, Han River, Namsan, Gangnam,
 
 Ginkgo turns gold in autumn, cherry trees blossom in spring, deciduous crowns disappear in winter, and Namsan pines remain green. Water uses procedural ripples with variable-width curved banks, reeds, stone edges and a small cruise boat. Geometry is stylized and distances compressed; this is not a navigation map.
 
+The richer city scene adds infill buildings with varied heights and stepped rooftops, four-sided mixed window lighting, winter branches, a market, bus shelters, parked cars and instanced pedestrians. Pedestrians are decorative and do not count as cyclists or rental starts. Their umbrellas follow rain; streetlight pools, bridge accents and river glimmers appear after dusk. The scene remains a Seoul-inspired miniature rather than a surveyed reconstruction.
+
+Applied conditions drive a smooth day/night atmosphere, sparse drifting cloud banks, visibility-sensitive haze, independent wind-blown rain and snow particles, wet road materials, and directional snow cover on roofs, parks and pines. Cloud cover is an illustrative interpretation of humidity, precipitation and solar inputs. Snow cover remains visible with reduced motion enabled. Near-camera clouds fade to keep the city readable; phones use fewer pedestrians and weather particles. Weather updates mutate the existing scene and preserve the loaded canvas and camera.
+
 Geographic references: [Seoul tourist map](https://english.seoul.go.kr/wp-content/uploads/2025/01/2025-seoul-tourist-mapENG.pdf), [Han River islands](https://english.seoul.go.kr/service/amusement/hangang/islands/), [Hangang cycling routes](https://english.seoul.go.kr/service/movement/seoul-public-bike/attractive-seoul-bike-tour-routes/), [Namsan planting](https://english.seoul.go.kr/april-namsan-mountain/), [ginkgo in Seoul](https://english.seoul.go.kr/marronnier-park/), [Saetgang ecology](https://english.seoul.go.kr/service/amusement/hangang/ecological-parks/).
 
 ## Video demo
