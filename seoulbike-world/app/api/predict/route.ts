@@ -28,8 +28,14 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
+      return Response.json(
+        { error: 'Request body must be a JSON object containing a scenario.' },
+        { status: 400 },
+      );
     const errors = validateScenario(parsed.scenario);
-    if (parsed.baseline) errors.push(...validateScenario(parsed.baseline));
+    if (parsed.baseline != null)
+      errors.push(...validateScenario(parsed.baseline));
     if (errors.length)
       return Response.json({ error: errors.join(' ') }, { status: 422 });
     const s = parsed.scenario as Scenario;
@@ -46,9 +52,10 @@ export async function POST(request: Request) {
         modelVersion: model.version,
         warnings,
         scenario: s,
-        explanation: parsed.baseline
-          ? explainChange(model, parsed.baseline, s)
-          : null,
+        explanation:
+          parsed.baseline != null
+            ? explainChange(model, parsed.baseline, s)
+            : null,
       },
       { headers: { 'Cache-Control': 'no-store' } },
     );
